@@ -1,0 +1,90 @@
+`timescale 1ns/1ps
+
+
+module test_qrs;
+
+
+    logic clk;
+    logic rst;
+    logic signed [31:0] Yin;
+    logic [10:0] i;
+
+
+    logic r_peak_flag;
+    logic [10:0] r_index_out;
+    logic signed [31:0] r_value_out;
+
+
+    //----------------------------------------
+    // DUT
+    //----------------------------------------
+    QRS dut (
+        .clk(clk),
+        .rst(rst),
+        .Yin(Yin),
+        .i(i),
+        .r_peak_flag(r_peak_flag),
+        .r_index_out(r_index_out),
+        .r_value_out(r_value_out)
+    );
+
+
+    //----------------------------------------
+    // Clock
+    //----------------------------------------
+    always #5 clk = ~clk;
+
+
+    //----------------------------------------
+    // Stimulus
+    //----------------------------------------
+    initial begin
+        clk = 0;
+        rst = 1;
+        Yin = 0;
+        i = 0;
+
+
+        #20;
+        rst = 0;
+
+
+        //----------------------------------------
+        // Simulated ECG waveform
+        //----------------------------------------
+        repeat (500) begin
+            @(posedge clk);
+            i <= i + 1;
+
+
+            case (i)
+                // baseline
+                0  : Yin <= -10;
+                1  : Yin <= -8;
+                2  : Yin <= -5;
+
+
+                // QRS complex
+                50 : Yin <= 10;
+                51 : Yin <= 30;
+                52 : Yin <= 80;   // R peak
+                53 : Yin <= 25;
+                54 : Yin <= -20;
+
+
+                // rest noise
+                default: Yin <= $random % 20;
+            endcase
+        end
+
+
+        #100;
+        $finish;
+    end
+//Waveform Dump SUPPORT
+initial begin
+        $fsdbDumpfile(`FSDB_FILE);
+        $fsdbDumpvars(0, test_qrs);
+    end 
+
+endmodule
