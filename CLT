@@ -1,0 +1,62 @@
+`timescale 1ns/1ps
+
+
+module CLT (
+    input  logic               clk,
+    input  logic               rst,
+    input  logic signed [31:0] Yin,
+    input  logic [10:0]        i,
+    output logic signed [31:0] clt_out
+);
+
+
+    logic signed [31:0] mem [0:31];
+
+
+    integer ps, ns;
+    integer x1, x2, x3, x4;
+    integer k;
+
+
+    function automatic int idx(input int val);
+        return ((val % 32) + 32) % 32;
+    endfunction
+
+
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
+            for (k = 0; k < 32; k = k + 1)
+                mem[k] <= 32'sd0;
+            ps      <= 0;
+            ns      <= 0;
+            clt_out <= 0;
+        end else begin
+            mem[idx(i)] <= Yin;
+
+
+            x1 = (mem[idx(i)] > mem[idx(i-1)]) ?
+                 (mem[idx(i)] - mem[idx(i-1)]) :
+                 (mem[idx(i-1)] - mem[idx(i)]);
+
+
+            x2 = 2 + 4*x1;
+
+
+            if (i > 31) begin
+                x3 = (mem[idx(i-30)] > mem[idx(i-31)]) ?
+                     (mem[idx(i-30)] - mem[idx(i-31)]) :
+                     (mem[idx(i-31)] - mem[idx(i-30)]);
+                x4 = 2 + 4*x3;
+                ns <= ps + x2 - x4;
+            end else begin
+                ns <= ps + x2;
+            end
+
+
+            ps      <= ns;
+            clt_out <= ns;
+        end
+    end
+
+
+endmodule
