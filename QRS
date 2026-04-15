@@ -1,0 +1,55 @@
+
+module QRS (
+    input  logic clk,
+    input  logic rst,
+    input  logic signed [31:0] Yin,
+    input  logic [10:0] i,
+
+
+    output logic r_peak_flag,
+    output logic [10:0] r_index_out,
+    output logic signed [31:0] r_value_out
+);
+
+
+    logic signed [31:0] clt_out;
+
+
+    //----------------------------------------
+    // CLT block
+    //----------------------------------------
+    CLT clt_inst (
+        .clk(clk),
+        .rst(rst),
+        .Yin(Yin),
+        .i(i),
+        .clt_out(clt_out)
+    );
+
+
+    //----------------------------------------
+    // R-Peak Detector
+    //----------------------------------------
+    RPeakDetector rpd_inst (
+        .clk(clk),
+        .rst(rst),
+        .clt_in(clt_out),
+        .i(i),
+        .r_index_out(r_index_out),
+        .r_value_out(r_value_out),
+        .r_peak_flag(r_peak_flag)
+    );
+
+
+    //----------------------------------------
+    // Debug print
+    //----------------------------------------
+    always_ff @(posedge clk) begin
+        if (r_peak_flag) begin
+            $display("R PEAK DETECTED ? index=%0d value=%0d",
+                     r_index_out, r_value_out);
+        end
+    end
+
+
+endmodule
