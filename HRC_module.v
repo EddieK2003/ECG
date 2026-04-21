@@ -3,7 +3,7 @@ module HRC_module #(
 )(
     input clk,
     input rst,
-    input r_peak,
+    input r_peak_flag,
     output reg [7:0] heart_rate
 );
 
@@ -18,7 +18,7 @@ always @(posedge clk or posedge rst) begin
     end else begin
         counter <= counter + 1;
 
-        if (r_peak) begin
+        if (r_peak_flag) begin
             last_interval <= counter;
             counter <= 0;
 

@@ -8,7 +8,7 @@ module HRC_tb;
     // Signals
     reg clk;
     reg rst;
-    reg r_peak;
+    reg r_peak_flag;
     wire [7:0] heart_rate;
 
     // Instantiate DUT
@@ -17,7 +17,7 @@ module HRC_tb;
     ) dut (
         .clk(clk),
         .rst(rst),
-        .r_peak(r_peak),
+        .r_peak_flag(r_peak_flag),
         .heart_rate(heart_rate)
     );
 
@@ -26,12 +26,12 @@ module HRC_tb;
     always #50 clk = ~clk;
 
     // Task to generate R-peak pulse
-    task generate_r_peak;
+    task generate_r_peak_flag;
     begin
         @(posedge clk);
-        r_peak = 1;
+        r_peak_flag = 1;
         @(posedge clk);
-        r_peak = 0;
+        r_peak_flag = 0;
     end
     endtask
 
@@ -39,26 +39,26 @@ module HRC_tb;
     initial begin
         $display("Starting Heart Rate Calculator Testbench");
         rst = 1;
-        r_peak = 0;
+        r_peak_flag = 0;
         #200;
         rst = 0;
 
         // ~60 BPM (1 sec interval)
         repeat (3) begin
             #(1000000000);
-            generate_r_peak;
+            generate_r_peak_flag;
         end
 
         // ~120 BPM (0.5 sec interval)
         repeat (3) begin
             #(500000000);
-            generate_r_peak;
+            generate_r_peak_flag;
         end
 
         // ~30 BPM (2 sec interval)
         repeat (2) begin
             #(2000000000);
-            generate_r_peak;
+            generate_r_peak_flag;
         end
 
         #1000;
@@ -74,8 +74,8 @@ module HRC_tb;
 
     // Monitor outputs
     initial begin
-        $monitor("Time=%0t | r_peak=%b | heart_rate=%d BPM",
-                  $time, r_peak, heart_rate);
+        $monitor("Time=%0t | r_peak_flag=%b | heart_rate=%d BPM",
+                  $time, r_peak_flag, heart_rate);
     end
 
 endmodule
